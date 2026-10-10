@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SportBook — запись на тренировки</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="loadingSplash" style="position:fixed; inset:0; z-index:999; display:none; place-items:center; background:var(--bg)">
+  <div style="text-align:center">
+    <div class="spinner"></div>
+    <p>Загрузка...</p>
+  </div>
+</div>
+
+<header class="header">
+  <div class="brand">
+    <span class="brand-mark">S</span>
+    <span>SportBook</span>
+  </div>
+
+  <nav class="nav" id="mainNav" style="display:none">
+    <button class="nav-link active" data-page="list" type="button">Мои записи</button>
+    <button class="nav-link" data-page="form" type="button">Новая запись</button>
+    <button class="nav-link" data-page="admin" id="adminNavLink" type="button" hidden>Админ-панель</button>
+    <div class="user-chip" id="userChip">
+      <span id="userName">—</span>
+      <span class="role" id="userRole">user</span>
+      <button class="link-btn" id="logoutBtn" type="button">Выйти</button>
+    </div>
+  </nav>
+</header>
+
+<main class="container" id="app">
+
+  <section id="page-auth" class="auth-wrap hidden">
+    <div class="auth-card">
+      <div id="loginForm">
+        <h1>Вход</h1>
+        <p class="sub">Войдите, чтобы записаться на тренировки.</p>
+        <form id="formLogin" novalidate>
+          <div class="field">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" required autocomplete="email">
+            <div class="field-error" id="loginEmailError"></div>
+          </div>
+          <div class="field">
+            <label for="loginPassword">Пароль</label>
+            <input id="loginPassword" type="password" required autocomplete="current-password">
+            <div class="field-error" id="loginPasswordError"></div>
+          </div>
+          <button class="btn btn-primary" id="loginSubmit" type="submit" style="width:100%">Войти</button>
+        </form>
+        <div class="auth-switch">
+          Нет аккаунта? <a id="showRegister">Зарегистрироваться</a>
+        </div>
+      </div>
+
+      <div id="registerForm" class="hidden">
+        <h1>Регистрация</h1>
+        <p class="sub">Создайте аккаунт для записи на тренировки.</p>
+        <form id="formRegister" novalidate>
+          <div class="field">
+            <label for="regName">Имя</label>
+            <input id="regName" type="text" required minlength="2" maxlength="60" autocomplete="name">
+            <div class="field-error" id="regNameError"></div>
+          </div>
+          <div class="field">
+            <label for="regEmail">Email</label>
+            <input id="regEmail" type="email" required autocomplete="email">
+            <div class="field-error" id="regEmailError"></div>
+          </div>
+          <div class="field">
+            <label for="regPassword">Пароль</label>
+            <input id="regPassword" type="password" required minlength="6" autocomplete="new-password">
+            <div class="field-hint">Минимум 6 символов</div>
+            <div class="field-error" id="regPasswordError"></div>
+          </div>
+          <div class="field">
+            <label for="regPassword2">Подтверждение пароля</label>
+            <input id="regPassword2" type="password" required autocomplete="new-password">
+            <div class="field-error" id="regPassword2Error"></div>
+          </div>
+          <button class="btn btn-primary" id="registerSubmit" type="submit" style="width:100%">Зарегистрироваться</button>
+        </form>
+        <div class="auth-switch">
+          Уже есть аккаунт? <a id="showLogin">Войти</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-list" class="page hidden">
+    <div class="page-title-row">
+      <div>
+        <h1>Мои записи</h1>
+        <p id="listSubtitle">Ваши записи на спортивные занятия.</p>
+      </div>
+      <button class="btn btn-primary" data-page="form" type="button">✦ Записаться</button>
+    </div>
+
+    <div class="filters">
+      <select id="filterStatus">
+        <option value="">Все статусы</option>
+        <option>Подтверждена</option>
+        <option>Посещено</option>
+        <option>Отменена</option>
+      </select>
+      <input id="filterDate" type="date">
+      <button class="btn btn-secondary btn-small" id="resetFilters" type="button">Сбросить</button>
+    </div>
+
+    <div id="bookingList"></div>
+  </section>
+
+  <section id="page-form" class="page hidden">
+    <h1 style="margin-bottom:20px">Новая запись</h1>
+    <form id="bookingForm" class="form-card" novalidate>
+      <div class="field">
+        <label for="activity">Занятие</label>
+        <select id="activity" required>
+          <option value="">Загрузка занятий...</option>
+        </select>
+        <div class="field-hint" id="activityInfo" style="display:none"></div>
+        <div class="field-error" id="activityError"></div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="date">Дата</label>
+          <input id="date" type="date" required>
+          <div class="field-hint">Можно записаться не более чем на год вперёд.</div>
+          <div class="field-error" id="dateError"></div>
+        </div>
+        <div class="field">
+          <label for="time">Время</label>
+          <input id="time" type="time" required min="06:00" max="20:00" step="300">
+          <div class="field-hint" id="timeHint">Будни: 06:00–20:00 · Выходные: 06:00–17:00</div>
+          <div class="field-error" id="timeError"></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" type="button" data-page="list">Отмена</button>
+        <button class="btn btn-primary" id="submitBtn" type="submit">Записаться</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="page-detail" class="page hidden">
+    <button class="link-btn" data-page="list" type="button">← К списку</button>
+    <div id="bookingDetail" style="margin-top:12px"></div>
+  </section>
+
+  <section id="page-client" class="page hidden">
+    <button class="link-btn" data-page="admin" type="button">← К списку клиентов</button>
+    <div id="clientDetail" style="margin-top:12px"></div>
+  </section>
+
+  <section id="page-admin" class="page hidden">
+    <div class="page-title-row">
+      <div>
+        <h1>Панель управления</h1>
+        <p id="adminDate">—</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn btn-primary btn-small" type="button" data-page="form">+ Новая запись</button>
+        <div class="admin-avatar" id="adminAvatar">А</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-admin-view="clients" type="button">👥 Клиенты</button>
+      <button class="tab" data-admin-view="analytics" type="button">📊 Аналитика</button>
+    </div>
+
+    <div id="adminViewClients">
+      <div class="filters">
+        <input id="adminClientSearch" type="text" placeholder="Поиск по email или имени...">
+        <select id="adminRoleFilter">
+          <option value="">Все роли</option>
+          <option value="admin">Администраторы</option>
+          <option value="user">Пользователи</option>
+        </select>
+        <button class="btn btn-secondary btn-small" id="resetClientFilters" type="button">Сбросить</button>
+      </div>
+      <div id="adminClients"></div>
+    </div>
+
+    <div id="adminViewAnalytics" class="hidden">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="chart-card">
+        <h2>Записи по статусам</h2>
+        <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h2>Популярные занятия</h2>
+        <div class="chart-wrap"><canvas id="activityChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<dialog id="confirmDialog" class="dialog">
+  <h2 id="confirmTitle">Отменить запись?</h2>
+  <p id="confirmText">После подтверждения статус будет изменён на «Отменена».</p>
+  <div class="dialog-actions">
+    <button class="btn btn-secondary" id="confirmNo" type="button">Не отменять</button>
+    <button class="btn btn-danger" id="confirmYes" type="button">Отменить запись</button>
+  </div>
+</dialog>
+
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

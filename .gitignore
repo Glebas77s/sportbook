@@ -1,0 +1,23 @@
+# Переменные окружения — НИКОГДА не коммитить
+.env
+.env.local
+.env.*.local
+
+# Зависимости
+node_modules/
+venv/
+.venv/
+__pycache__/
+
+# Логи
+*.log
+
+# OS / редакторы
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Сборка
+dist/
+build/
