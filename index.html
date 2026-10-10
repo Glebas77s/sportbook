@@ -39,6 +39,8 @@
 
   <section id="page-auth" class="auth-wrap hidden">
     <div class="auth-card">
+
+      <!-- ВХОД -->
       <div id="loginForm">
         <h1>Вход</h1>
         <p class="sub">Войдите, чтобы записаться на тренировки.</p>
@@ -55,11 +57,15 @@
           </div>
           <button class="btn btn-primary" id="loginSubmit" type="submit" style="width:100%">Войти</button>
         </form>
+        <div class="auth-switch" style="margin-top:12px">
+          <a id="showForgot">Забыли пароль?</a>
+        </div>
         <div class="auth-switch">
           Нет аккаунта? <a id="showRegister">Зарегистрироваться</a>
         </div>
       </div>
 
+      <!-- РЕГИСТРАЦИЯ -->
       <div id="registerForm" class="hidden">
         <h1>Регистрация</h1>
         <p class="sub">Создайте аккаунт для записи на тренировки.</p>
@@ -91,6 +97,44 @@
           Уже есть аккаунт? <a id="showLogin">Войти</a>
         </div>
       </div>
+
+      <!-- ЗАБЫЛИ ПАРОЛЬ -->
+      <div id="forgotForm" class="hidden">
+        <h1>Восстановление пароля</h1>
+        <p class="sub">Укажите email — мы отправим ссылку для сброса пароля.</p>
+        <form id="formForgot" novalidate>
+          <div class="field">
+            <label for="forgotEmail">Email</label>
+            <input id="forgotEmail" type="email" required autocomplete="email">
+            <div class="field-error" id="forgotEmailError"></div>
+          </div>
+          <button class="btn btn-primary" id="forgotSubmit" type="submit" style="width:100%">Отправить ссылку</button>
+        </form>
+        <div class="auth-switch">
+          <a id="showLoginFromForgot">← Вернуться ко входу</a>
+        </div>
+      </div>
+
+      <!-- НОВЫЙ ПАРОЛЬ -->
+      <div id="resetForm" class="hidden">
+        <h1>Новый пароль</h1>
+        <p class="sub">Придумайте новый пароль для входа.</p>
+        <form id="formReset" novalidate>
+          <div class="field">
+            <label for="resetPassword">Новый пароль</label>
+            <input id="resetPassword" type="password" required minlength="6" autocomplete="new-password">
+            <div class="field-hint">Минимум 6 символов</div>
+            <div class="field-error" id="resetPasswordError"></div>
+          </div>
+          <div class="field">
+            <label for="resetPassword2">Подтверждение пароля</label>
+            <input id="resetPassword2" type="password" required autocomplete="new-password">
+            <div class="field-error" id="resetPassword2Error"></div>
+          </div>
+          <button class="btn btn-primary" id="resetSubmit" type="submit" style="width:100%">Сохранить пароль</button>
+        </form>
+      </div>
+
     </div>
   </section>
 
